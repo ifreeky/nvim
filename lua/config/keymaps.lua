@@ -29,3 +29,9 @@ map("n", "<C-Down>", ":resize +2<CR>", opt)
 map("n", "<C-Up>", ":resize -2<CR>", opt)
 -- 等比例
 map("n", "s=", "<C-w>=", opt)
+
+map("n", "y", '"+y', opt)
+map("n", "Y", '"+y', opt)
+map("n", "yy", '"+yy', opt)
+map("n", "p", '"+p', opt)
+map("n", "P", '"+P', opt)

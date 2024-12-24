@@ -5,8 +5,12 @@ return {
     lazy = true, -- 延迟加载
   },
   {
-    "folke/tokyonight.nvim",
-    lazy = true, -- 延迟加载
+    "Tsuzat/NeoSolarized.nvim",
+    lazy = false, -- 延迟加载
+    priority = 1000,
+    config = function()
+      vim.cmd([[ colorscheme NeoSolarized ]])
+    end,
   },
   {
     "navarasu/onedark.nvim",
@@ -14,10 +18,12 @@ return {
   },
   {
     "scottmckendry/cyberdream.nvim",
-    lazy = false, -- 确保 cyberdream 立即加载
+    lazy = true, -- 确保 cyberdream 立即加载
     priority = 1000, -- 确保 cyberdream 在其他主题之前加载
     opts = {
       transparent = true,
+      borderless_telescope = true,
+      terminal_colors = true,
     },
   },
 
@@ -25,7 +31,7 @@ return {
   {
     "LazyVim/LazyVim",
     opts = {
-      colorscheme = "cyberdream", -- 设置默认配色
+      colorscheme = "NeoSolarized", -- 设置默认配色
     },
   },
 }

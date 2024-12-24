@@ -44,3 +44,6 @@ require("lazy").setup({
     },
   },
 })
+
+vim.opt.guicursor = "n-v-c:block-Cursor,i-ci-ve:ver25-Cursor,r-cr:hor20-Cursor" -- 设置不同模式下光标样式
+vim.api.nvim_set_hl(0, "Cursor", { fg = "#ffffff", bg = "#ff0000" }) -- 自定义 Cursor 的颜色

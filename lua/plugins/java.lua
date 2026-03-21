@@ -34,6 +34,9 @@ return {
     "neovim/nvim-lspconfig",
     opts = function(_, opts)
       opts.servers = opts.servers or {}
+      if opts.servers.jdtls == false then
+        return
+      end
 
       local server = opts.servers.jdtls == true and {} or opts.servers.jdtls or {}
       local existing_on_attach = server.on_attach

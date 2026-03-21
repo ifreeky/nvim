@@ -10,7 +10,11 @@ return {
       },
     },
     config = function()
-      require("java").setup()
+      require("java").setup({
+        jdk = {
+          auto_install = false,
+        },
+      })
       vim.lsp.enable("jdtls")
     end,
   },

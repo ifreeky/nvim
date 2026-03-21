@@ -48,6 +48,8 @@ Implement the behavior in `lua/config/autocmds.lua`.
 
 This file is already the repository's extension point for editor lifecycle behavior, and the requested feature is an autocmd-driven mode transition policy rather than a plugin integration.
 
+Register the autocmds in a dedicated augroup with `clear = true` so the behavior remains reload-safe and does not duplicate handlers if the file is re-sourced during config development.
+
 ### State Handling
 
 Keep one module-local variable for the last non-English input source ID.
@@ -59,6 +61,8 @@ Behavior:
 - Then switch to the configured English input source ID.
 
 - On `InsertEnter`, if a previously stored non-English input source ID exists, switch back to it.
+
+Manual input method changes made while already in normal mode are intentionally ignored in this first version. The restore target is only updated at `InsertLeave`, which keeps the state model simple and aligned with the requested workflow.
 
 This preserves the user's prior insert-mode input method instead of forcing a fixed Chinese input method.
 
@@ -77,6 +81,16 @@ The implementation should be silent on operational failures:
 - if setting the target input source fails, do not raise an editor error.
 
 This is a convenience feature. It must not interrupt editing.
+
+### `macism` Invocation Contract
+
+The implementation should treat `macism` as a simple shell command with this contract:
+
+- `macism` with no argument returns the current input source ID on stdout when successful;
+- `macism <input-source-id>` switches to the given input source ID and should be considered successful only if the shell exit code is `0`;
+- any non-zero exit code or empty read result should be treated as a no-op failure path.
+
+The config should check executability once before registering behavior so Neovim does not repeatedly attempt unavailable commands.
 
 ## Verification Strategy
 

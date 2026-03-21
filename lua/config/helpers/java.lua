@@ -8,7 +8,7 @@ local function has_marker(dir, marker)
   return path_exists(vim.fs.joinpath(dir, marker))
 end
 
-local function eligible_root(dir)
+local function build_root(dir)
   if has_marker(dir, "pom.xml") or has_marker(dir, ".mvn") then
     return dir
   end
@@ -22,10 +22,6 @@ local function eligible_root(dir)
   then
     return dir
   end
-
-  if has_marker(dir, ".git") then
-    return dir
-  end
 end
 
 function M.find_root(path)
@@ -34,11 +30,16 @@ function M.find_root(path)
   end
 
   local dir = vim.fs.dirname(vim.fs.normalize(path))
+  local git_root
 
   while dir and dir ~= "" do
-    local root = eligible_root(dir)
+    local root = build_root(dir)
     if root then
       return root
+    end
+
+    if not git_root and has_marker(dir, ".git") then
+      git_root = dir
     end
 
     local parent = vim.fs.dirname(dir)
@@ -48,7 +49,7 @@ function M.find_root(path)
     dir = parent
   end
 
-  return nil
+  return git_root
 end
 
 function M.root_dir(bufnr, on_dir)

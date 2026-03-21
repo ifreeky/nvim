@@ -1,4 +1,16 @@
 local java = require("config.helpers.java")
+local config = require("lazy.core.config")
+local plugin = require("lazy.core.plugin")
+
+local function jdtls_disabled()
+  local lspconfig = config.plugins["nvim-lspconfig"]
+  if not lspconfig then
+    return false
+  end
+
+  local opts = plugin.values(lspconfig, "opts")
+  return opts.servers ~= nil and opts.servers.jdtls == false
+end
 
 return {
   {
@@ -15,10 +27,13 @@ return {
     "mason-org/mason.nvim",
     opts = function(_, opts)
       opts.ensure_installed = opts.ensure_installed or {}
+      local install_jdtls = not jdtls_disabled()
 
       for _, pkg in ipairs({ "google-java-format", "jdtls" }) do
-        if not vim.tbl_contains(opts.ensure_installed, pkg) then
-          table.insert(opts.ensure_installed, pkg)
+        if pkg ~= "jdtls" or install_jdtls then
+          if not vim.tbl_contains(opts.ensure_installed, pkg) then
+            table.insert(opts.ensure_installed, pkg)
+          end
         end
       end
     end,

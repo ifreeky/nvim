@@ -4,15 +4,16 @@ function M.is_dir(path)
   return path ~= nil and vim.fn.isdirectory(vim.fn.fnamemodify(path, ":p")) == 1
 end
 
-function M.open_explorer()
+function M.open_explorer(path)
   vim.schedule(function()
     local ok, command = pcall(require, "neo-tree.command")
     if ok then
+      local dir = path and vim.fn.fnamemodify(path, ":p") or vim.uv.cwd()
       command.execute({
         action = "show",
         source = "filesystem",
         position = "left",
-        dir = vim.uv.cwd(),
+        dir = dir,
       })
     end
   end)

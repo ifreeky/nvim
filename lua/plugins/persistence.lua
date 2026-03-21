@@ -41,10 +41,14 @@ return {
           local argc = vim.fn.argc()
           local argv0 = argc > 0 and vim.fn.argv(0) or nil
           local entering_dir = argc == 1 and helpers.is_dir(argv0)
-          local explorer_dir = entering_dir and argv0 or nil
+          local startup_dir = entering_dir and vim.fn.fnamemodify(argv0, ":p") or nil
 
           if not (argc == 0 or entering_dir) then
             return
+          end
+
+          if startup_dir then
+            vim.api.nvim_set_current_dir(startup_dir)
           end
 
           local persistence = require("persistence")
@@ -53,12 +57,12 @@ return {
 
           if has_session then
             persistence.load()
-            helpers.open_explorer(explorer_dir)
+            helpers.open_explorer(startup_dir)
             return
           end
 
           if entering_dir then
-            helpers.open_explorer(explorer_dir)
+            helpers.open_explorer(startup_dir)
           end
         end,
       })

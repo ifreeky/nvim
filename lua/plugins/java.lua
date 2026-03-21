@@ -1,3 +1,20 @@
+local function jdtls_java_env()
+  local result = vim.fn.system({ "/usr/libexec/java_home", "-v", "21" })
+  if vim.v.shell_error ~= 0 then
+    return nil
+  end
+
+  local java_home = vim.trim(result)
+  if java_home == "" then
+    return nil
+  end
+
+  return {
+    JAVA_HOME = java_home,
+    PATH = table.concat({ java_home .. "/bin", vim.env.PATH }, ":"),
+  }
+end
+
 return {
   {
     "nvim-java/nvim-java",
@@ -15,6 +32,14 @@ return {
           auto_install = false,
         },
       })
+
+      local env = jdtls_java_env()
+      if env then
+        vim.lsp.config("jdtls", {
+          cmd_env = env,
+        })
+      end
+
       vim.lsp.enable("jdtls")
     end,
   },

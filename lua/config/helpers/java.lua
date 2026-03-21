@@ -56,9 +56,4 @@ function M.root_dir(bufnr, on_dir)
   on_dir(M.find_root(vim.api.nvim_buf_get_name(bufnr)))
 end
 
-function M.jdtls_cmd()
-  local cmd = vim.fn.exepath("jdtls")
-  return { cmd ~= "" and cmd or "jdtls" }
-end
-
 return M

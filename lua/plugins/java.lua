@@ -2,6 +2,10 @@ local java = require("config.helpers.java")
 local config = require("lazy.core.config")
 local plugin = require("lazy.core.plugin")
 
+local function jdtls_disabled_value(value)
+  return value == false or (type(value) == "table" and value.enabled == false)
+end
+
 local function jdtls_disabled()
   local lspconfig = config.plugins["nvim-lspconfig"]
   if not lspconfig then
@@ -9,7 +13,7 @@ local function jdtls_disabled()
   end
 
   local opts = plugin.values(lspconfig, "opts")
-  return opts.servers ~= nil and opts.servers.jdtls == false
+  return opts.servers ~= nil and jdtls_disabled_value(opts.servers.jdtls)
 end
 
 return {
@@ -49,14 +53,13 @@ return {
     "neovim/nvim-lspconfig",
     opts = function(_, opts)
       opts.servers = opts.servers or {}
-      if opts.servers.jdtls == false then
+      if jdtls_disabled_value(opts.servers.jdtls) then
         return
       end
 
       local server = opts.servers.jdtls == true and {} or opts.servers.jdtls or {}
       local existing_on_attach = server.on_attach
 
-      server.cmd = java.jdtls_cmd()
       server.root_dir = java.root_dir
       server.single_file_support = false
       server.settings = vim.tbl_deep_extend("force", server.settings or {}, {

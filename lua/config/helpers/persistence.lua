@@ -25,15 +25,20 @@ function M.refresh_session_buffers()
     if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].buftype == "" then
       local name = vim.api.nvim_buf_get_name(buf)
       if name ~= "" then
+        local assigned_filetype = false
+
         if vim.bo[buf].filetype == "" then
           local ft = vim.filetype.match({ buf = buf, filename = name })
           if ft and ft ~= "" then
             vim.bo[buf].filetype = ft
+            assigned_filetype = true
           end
         end
 
         if vim.bo[buf].filetype ~= "" then
-          vim.api.nvim_exec_autocmds("FileType", { buffer = buf, modeline = false })
+          if not assigned_filetype then
+            vim.api.nvim_exec_autocmds("FileType", { buffer = buf, modeline = false })
+          end
           pcall(vim.treesitter.start, buf)
         end
       end

@@ -121,6 +121,7 @@ local function java_cmd_env()
   return {
     JAVA_HOME = java_home,
     PATH = table.concat({ java_home .. "/bin", vim.env.PATH }, ":"),
+    JAVA_TOOL_OPTIONS = "-Xms2G -Xmx4G",
   }
 end
 

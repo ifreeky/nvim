@@ -159,6 +159,25 @@ local function close_and_leave_special_window()
   close_special_window()
 end
 
+-- TUI programs that need <Esc> for their own navigation
+local tui_programs = { "lazygit", "lazydocker", "htop", "btop", "top", "less", "man", "fzf" }
+
+local function is_tui_terminal(buf)
+  local chan = vim.bo[buf].channel
+  if chan and chan > 0 then
+    local ok, info = pcall(vim.api.nvim_get_chan_info, chan)
+    if ok and info and info.argv then
+      local cmd = table.concat(info.argv, " "):lower()
+      for _, prog in ipairs(tui_programs) do
+        if cmd:find(prog, 1, true) then
+          return true
+        end
+      end
+    end
+  end
+  return false
+end
+
 local special_window_group = vim.api.nvim_create_augroup("ifreeky_special_window_shortcuts", { clear = true })
 
 vim.api.nvim_create_autocmd({ "WinEnter", "BufWinEnter", "TermOpen" }, {
@@ -167,6 +186,11 @@ vim.api.nvim_create_autocmd({ "WinEnter", "BufWinEnter", "TermOpen" }, {
     local buf = args.buf
     if vim.bo[buf].buftype == "" then
       vim.t.last_editor_win = vim.api.nvim_get_current_win()
+      return
+    end
+
+    -- Skip Esc mapping for interactive TUI programs
+    if vim.bo[buf].buftype == "terminal" and is_tui_terminal(buf) then
       return
     end
 

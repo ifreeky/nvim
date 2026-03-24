@@ -29,3 +29,26 @@ vim.keymap.set("i", "jj", "<Esc>", { noremap = true, silent = true })
 vim.keymap.set("v", "<D-c>", '"+y', { desc = "Copy selection to system clipboard" })
 vim.keymap.set("n", "<D-c>", '"+yy', { desc = "Copy line to system clipboard" })
 vim.keymap.set("i", "<D-c>", copy_current_line_to_system_clipboard, { desc = "Copy current line to system clipboard" })
+
+-- Git diff with branch selection
+vim.keymap.set("n", "<leader>gB", function()
+  local result = vim.fn.systemlist("git branch -r --sort=-committerdate 2>/dev/null")
+  if vim.v.shell_error ~= 0 or #result == 0 then
+    vim.notify("Not in a git repo or no remote branches", vim.log.levels.WARN)
+    return
+  end
+
+  local branches = {}
+  for _, b in ipairs(result) do
+    local name = vim.trim(b)
+    if not name:find("HEAD") then
+      branches[#branches + 1] = name
+    end
+  end
+
+  vim.ui.select(branches, { prompt = "Diff against branch:" }, function(choice)
+    if choice then
+      Snacks.picker.git_diff({ base = choice, group = true })
+    end
+  end)
+end, { desc = "Git Diff (select branch)" })

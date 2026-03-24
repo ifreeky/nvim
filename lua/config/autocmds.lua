@@ -60,3 +60,118 @@ if has_macism() then
     end,
   })
 end
+
+-- ── Special window management (Esc to leave, Shift-Esc to close) ────────────
+
+local function is_editor_window(win)
+  if not (win and vim.api.nvim_win_is_valid(win)) then
+    return false
+  end
+
+  local buf = vim.api.nvim_win_get_buf(win)
+  return vim.bo[buf].buftype == ""
+end
+
+local function current_tab_editor_windows()
+  local wins = {}
+
+  for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+    if is_editor_window(win) then
+      wins[#wins + 1] = win
+    end
+  end
+
+  return wins
+end
+
+local function find_editor_window(opts)
+  opts = opts or {}
+  local exclude = opts.exclude
+  local last = vim.t.last_editor_win
+
+  if last and last ~= exclude and is_editor_window(last) then
+    return last
+  end
+
+  for _, win in ipairs(current_tab_editor_windows()) do
+    if win ~= exclude then
+      return win
+    end
+  end
+end
+
+local function focus_editor_window()
+  local target = find_editor_window({ exclude = vim.api.nvim_get_current_win() })
+  if target then
+    vim.api.nvim_set_current_win(target)
+    return true
+  end
+
+  return false
+end
+
+local function close_special_window()
+  local current = vim.api.nvim_get_current_win()
+  local target = find_editor_window({ exclude = current })
+
+  pcall(vim.api.nvim_win_close, current, true)
+
+  if target and vim.api.nvim_win_is_valid(target) then
+    vim.schedule(function()
+      if vim.api.nvim_win_is_valid(target) then
+        vim.api.nvim_set_current_win(target)
+      end
+    end)
+  end
+end
+
+local function leave_special_window()
+  local mode = vim.api.nvim_get_mode().mode
+  if mode:sub(1, 1) == "t" then
+    vim.api.nvim_feedkeys(vim.keycode("<C-\\><C-n>"), "n", false)
+    vim.schedule(focus_editor_window)
+    return
+  end
+
+  if mode:sub(1, 1) == "i" then
+    vim.cmd.stopinsert()
+    vim.schedule(focus_editor_window)
+    return
+  end
+
+  focus_editor_window()
+end
+
+local function close_and_leave_special_window()
+  local mode = vim.api.nvim_get_mode().mode
+  if mode:sub(1, 1) == "t" then
+    vim.api.nvim_feedkeys(vim.keycode("<C-\\><C-n>"), "n", false)
+    vim.schedule(close_special_window)
+    return
+  end
+
+  if mode:sub(1, 1) == "i" then
+    vim.cmd.stopinsert()
+    vim.schedule(close_special_window)
+    return
+  end
+
+  close_special_window()
+end
+
+local special_window_group = vim.api.nvim_create_augroup("ifreeky_special_window_shortcuts", { clear = true })
+
+vim.api.nvim_create_autocmd({ "WinEnter", "BufWinEnter", "TermOpen" }, {
+  group = special_window_group,
+  callback = function(args)
+    local buf = args.buf
+    if vim.bo[buf].buftype == "" then
+      vim.t.last_editor_win = vim.api.nvim_get_current_win()
+      return
+    end
+
+    local opts = { buffer = buf, silent = true, nowait = true }
+    vim.keymap.set({ "n", "i", "t" }, "<Esc>", leave_special_window, opts)
+    vim.keymap.set({ "n", "i", "t" }, "<S-Esc>", close_and_leave_special_window, opts)
+  end,
+})

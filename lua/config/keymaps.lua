@@ -17,8 +17,8 @@ vim.keymap.set({ "n", "v" }, "x", [["_x]], { desc = "Delete char without yank" }
 vim.keymap.set({ "n", "v" }, "X", [["_X]], { desc = "Delete char backward without yank" })
 
 -- Buffer navigation
-vim.keymap.set({ "n", "v" }, "E", "<cmd>bnext<CR>", { desc = "Next Buffer" })
-vim.keymap.set({ "n", "v" }, "R", "<cmd>bprevious<CR>", { desc = "Prev Buffer" })
+vim.keymap.set({ "n", "v" }, "E", "<cmd>bprevious<CR>", { desc = "Prev Buffer" })
+vim.keymap.set({ "n", "v" }, "R", "<cmd>bnext<CR>", { desc = "Next Buffer" })
 
 -- Line movement and escape
 vim.keymap.set({ "n", "v", "o" }, "H", "^", { desc = "Go line start" })

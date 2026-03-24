@@ -191,13 +191,60 @@ end
 
 local function default_java_root(path)
   local markers = vim.lsp.config.jdtls and vim.lsp.config.jdtls.root_markers
-    or { "mvnw", "gradlew", "settings.gradle", "settings.gradle.kts", ".git", "pom.xml", "build.gradle", "build.gradle.kts", "build.xml" }
+    or {
+      "mvnw",
+      "gradlew",
+      "settings.gradle",
+      "settings.gradle.kts",
+      ".git",
+      "pom.xml",
+      "build.gradle",
+      "build.gradle.kts",
+      "build.xml",
+    }
 
   return vim.fs.root(path, markers)
 end
 
 local function java_root_dir(path)
   return find_maven_root(path) or default_java_root(path)
+end
+
+-- ── Maven settings detection ────────────────────────────────────────────────
+
+local function resolve_maven_settings(root_path)
+  -- Prefer MAVEN_ARGS from environment (direnv already loaded)
+  local maven_args = vim.env.MAVEN_ARGS
+  if maven_args then
+    local settings = maven_args:match("-s%s+(%S+)")
+    if settings then
+      settings = settings:gsub("$HOME", vim.env.HOME):gsub("${HOME}", vim.env.HOME)
+      if file_exists(settings) then
+        return settings
+      end
+    end
+  end
+
+  -- Fallback: walk up from root_path looking for .envrc
+  local dir = root_path or vim.fn.getcwd()
+  while dir do
+    local envrc = dir .. "/.envrc"
+    local content = read_file(envrc)
+    if content then
+      local settings = content:match('MAVEN_ARGS="%-s%s+(%S+)"')
+        or content:match("MAVEN_ARGS='%-s%s+(%S+)'")
+        or content:match("MAVEN_ARGS=%-s%s+(%S+)")
+      if settings then
+        settings = settings:gsub("$HOME", vim.env.HOME):gsub("${HOME}", vim.env.HOME)
+        if file_exists(settings) then
+          return settings
+        end
+      end
+    end
+    dir = parent_dir(dir)
+  end
+
+  return nil
 end
 
 -- ── Smart goto definition ───────────────────────────────────────────────────
@@ -317,17 +364,22 @@ return {
       end
 
       local runtimes = configured_runtimes()
+      local maven_settings = resolve_maven_settings()
+
+      lsp_settings.root_dir = function(bufnr, on_dir)
+        on_dir(java_root_dir(vim.api.nvim_buf_get_name(bufnr)))
+      end
+
+      local java_config = {}
       if #runtimes > 0 then
-        lsp_settings.root_dir = function(bufnr, on_dir)
-          on_dir(java_root_dir(vim.api.nvim_buf_get_name(bufnr)))
-        end
-        lsp_settings.settings = {
-          java = {
-            configuration = {
-              runtimes = runtimes,
-            },
-          },
-        }
+        java_config.configuration = { runtimes = runtimes }
+      end
+      if maven_settings then
+        java_config.configuration = java_config.configuration or {}
+        java_config.configuration.maven = { userSettings = maven_settings }
+      end
+      if next(java_config) then
+        lsp_settings.settings = { java = java_config }
       end
 
       if next(lsp_settings) then

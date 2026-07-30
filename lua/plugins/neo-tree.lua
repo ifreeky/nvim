@@ -1,3 +1,7 @@
+if vim.g.vscode then
+  return {}
+end
+
 return {
   {
     "nvim-neo-tree/neo-tree.nvim",
@@ -16,7 +20,7 @@ return {
       window = {
         mappings = {
           ["L"] = "expand_all_subnodes",
-          ["H"] = "close_all_subnodes",
+          ["H"] = "toggle_hidden",
         },
       },
     },

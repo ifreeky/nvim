@@ -23,7 +23,9 @@ vim.keymap.set({ "n", "v" }, "R", "<cmd>bnext<CR>", { desc = "Next Buffer" })
 -- Line movement and escape
 vim.keymap.set({ "n", "v", "o" }, "H", "^", { desc = "Go line start" })
 vim.keymap.set({ "n", "v", "o" }, "L", "$", { desc = "Go line end" })
-vim.keymap.set("i", "jj", "<Esc>", { noremap = true, silent = true })
+if not vim.g.vscode then
+  vim.keymap.set("i", "jj", "<Esc>", { noremap = true, silent = true })
+end
 
 -- macOS clipboard integration
 vim.keymap.set("v", "<D-c>", '"+y', { desc = "Copy selection to system clipboard" })

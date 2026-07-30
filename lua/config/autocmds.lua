@@ -7,6 +7,10 @@
 -- Or remove existing autocmds by their group name (which is prefixed with `lazyvim_` for the defaults)
 -- e.g. vim.api.nvim_del_augroup_by_name("lazyvim_wrap_spell")
 
+if vim.g.vscode then
+  return
+end
+
 local english_input_source = "com.apple.keylayout.ABC"
 local restore_input_source
 
@@ -180,7 +184,7 @@ end
 
 local special_window_group = vim.api.nvim_create_augroup("ifreeky_special_window_shortcuts", { clear = true })
 
-vim.api.nvim_create_autocmd({ "WinEnter", "BufWinEnter", "TermOpen" }, {
+vim.api.nvim_create_autocmd({ "WinEnter", "BufWinEnter", "TermOpen", "FileType" }, {
   group = special_window_group,
   callback = function(args)
     local buf = args.buf
@@ -195,7 +199,8 @@ vim.api.nvim_create_autocmd({ "WinEnter", "BufWinEnter", "TermOpen" }, {
     end
 
     local opts = { buffer = buf, silent = true, nowait = true }
-    vim.keymap.set({ "n", "i", "t" }, "<Esc>", leave_special_window, opts)
+    local escape_action = vim.bo[buf].filetype == "lazy" and close_and_leave_special_window or leave_special_window
+    vim.keymap.set({ "n", "i", "t" }, "<Esc>", escape_action, opts)
     vim.keymap.set({ "n", "i", "t" }, "<S-Esc>", close_and_leave_special_window, opts)
   end,
 })

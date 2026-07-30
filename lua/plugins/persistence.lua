@@ -1,5 +1,9 @@
 local helpers = require("config.helpers.persistence")
 
+if vim.g.vscode then
+  return {}
+end
+
 return {
   {
     "folke/persistence.nvim",
